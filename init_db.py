@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# Crea la base de datos y siembra un administrador y un usuario de prueba.
-# Correrlo con sudo para poder dejar la carpeta y el archivo a nombre de asterisk.
+# Crea la base y siembra un administrador y un usuario de prueba.
+# Si esas cuentas ya existen, conserva su contraseña.
 import os
 import pwd
 import sqlite3
@@ -9,10 +9,8 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from auth import DB_PATH, hashear, validar_clave  # noqa: E402
 
-# Usuario del sistema que corre Asterisk (el instalador lo detecta y lo pasa por variable)
 USUARIO_SISTEMA = os.environ.get("AGI_AUTH_USER", "asterisk")
 
-# Cuentas iniciales: (usuario, rol, clave). Cámbialas después de la primera prueba.
 SEMILLA = [
     ("9999", "admin", "482913"),
     ("1001", "usuario", "135792"),
@@ -23,8 +21,8 @@ def main():
     carpeta = os.path.dirname(DB_PATH)
     os.makedirs(carpeta, exist_ok=True)
 
-    con = sqlite3.connect(DB_PATH)
-    con.execute(
+    conexion = sqlite3.connect(DB_PATH)
+    conexion.execute(
         """CREATE TABLE IF NOT EXISTS usuarios (
                usuario TEXT PRIMARY KEY,
                rol     TEXT NOT NULL CHECK (rol IN ('usuario', 'admin')),
@@ -34,18 +32,22 @@ def main():
            )"""
     )
     for usuario, rol, clave in SEMILLA:
-        # Valido la semilla con la misma política para no meter claves que la política rechazaría
         assert validar_clave(clave, usuario) is None, f"clave semilla inválida: {usuario}"
-        salt, h = hashear(clave)
-        con.execute(
-            "INSERT OR IGNORE INTO usuarios (usuario, rol, salt, hash) VALUES (?, ?, ?, ?)",
-            (usuario, rol, salt, h),
+        existe = conexion.execute(
+            "SELECT 1 FROM usuarios WHERE usuario = ?", (usuario,)
+        ).fetchone()
+        if existe:
+            print(f"{rol:8} {usuario} ya existía: se conserva su contraseña")
+            continue
+        salt, resumen = hashear(clave)
+        conexion.execute(
+            "INSERT INTO usuarios (usuario, rol, salt, hash) VALUES (?, ?, ?, ?)",
+            (usuario, rol, salt, resumen),
         )
         print(f"{rol:8} {usuario} / {clave}")
-    con.commit()
-    con.close()
+    conexion.commit()
+    conexion.close()
 
-    # Dejo carpeta y archivo a nombre de asterisk; sin esto el AGI no puede escribir
     try:
         pw = pwd.getpwnam(USUARIO_SISTEMA)
         for ruta in (carpeta, DB_PATH):
