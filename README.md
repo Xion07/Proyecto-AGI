@@ -1,3 +1,12 @@
+## Integrantes del equipo
+
+Proyecto desarrollado por los siguientes estudiantes:
+
+- **Alejandro Lopez Ospina**
+- **David Julian Pegagos Arroyave**
+- **Mateo Blandon Mesa**
+- **Ronald Jovanny Rodas Goez**
+
 # Proyecto AGI: Sistema de autenticación telefónica con Asterisk
 
 Sistema de autenticación por llamadas telefónicas desarrollado con **Asterisk, PJSIP, Python AGI y SQLite**. El usuario interactúa con el sistema mediante tonos DTMF desde un softphone compatible con SIP.
@@ -398,14 +407,6 @@ Si aparecen errores de acceso, revisa los permisos de los archivos AGI y de la b
 
 - La configuración descrita es una guía de instalación y pruebas; no constituye por sí sola una auditoría de seguridad ni una garantía de preparación para producción.
 
-## Integrantes del equipo
-
-Proyecto desarrollado por los siguientes estudiantes:
-
-- **Alejandro Lopez Ospina**
-- **David Julian Pegagos Arroyave**
-- **Mateo Blandon Mesa**
-- **Ronald Jovanny Rodas Goez**
 
 ## Resultado esperado
 
